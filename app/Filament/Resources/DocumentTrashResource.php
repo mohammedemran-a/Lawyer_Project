@@ -32,10 +32,10 @@ class DocumentTrashResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')->sortable()->label('ID'),
                 Tables\Columns\TextColumn::make('name')->label('اسم المستند')->searchable(),
-                Tables\Columns\TextColumn::make('case.title')->label('القضية'),
-                Tables\Columns\TextColumn::make('clinic.name')->label('العميل'),
-                Tables\Columns\TextColumn::make('lawyer.name')->label('المحامي'),
-                Tables\Columns\TextColumn::make('doc_type')->label('النوع'),
+                Tables\Columns\TextColumn::make('case.title')->label('القضية')->searchable(),
+                Tables\Columns\TextColumn::make('clinic.name')->label('العميل')->searchable(),
+                Tables\Columns\TextColumn::make('lawyer.name')->label('المحامي')->searchable(),
+                Tables\Columns\TextColumn::make('doc_type')->label('النوع')->searchable(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime('d-m-Y H:i')->label('تاريخ الإنشاء'),
             ])
             ->actions([

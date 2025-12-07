@@ -32,11 +32,15 @@ class AuthorizationResource extends Resource
             ->schema([
                 Forms\Components\Select::make('client_id')
                     ->relationship('client', 'name')
+                    ->searchable()
+                     ->preload()
                     ->required()
                     ->label('العميل'),
 
                 Forms\Components\Select::make('lawyer_id')
                     ->relationship('lawyer', 'name')
+                    ->searchable()
+                     ->preload()
                     ->required()
                     ->label('المحامي'),
 
@@ -96,11 +100,13 @@ class AuthorizationResource extends Resource
                     ->label('النوع'),
 
                 Tables\Columns\TextColumn::make('company_name')
-                    ->label('اسم الشركة'),
+                    ->label('اسم الشركة')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('year')
                     ->label('السنة')
-                    ->date('Y'),
+                    ->date('Y')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('start_date')
                     ->label('تاريخ البداية')
@@ -111,7 +117,8 @@ class AuthorizationResource extends Resource
                     ->date(),
 
                 Tables\Columns\TextColumn::make('office_file_no')
-                    ->label('رقم ملف المكتب'),
+                    ->label('رقم ملف المكتب')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('تاريخ الإنشاء')

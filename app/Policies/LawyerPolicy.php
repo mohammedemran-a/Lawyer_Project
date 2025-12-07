@@ -10,36 +10,21 @@ class LawyerPolicy
 {
     use HandlesAuthorization;
 
-    public function viewAny(User $user): bool
-    {
-        // يستطيع فتح صفحة المحامين فقط إذا عنده صلاحية عرض أو عرض الكل
-        return $user->can('view_any_lawyer') || $user->can('view_lawyer');
-    }
-
-    public function view(User $user, Lawyer $lawyer): bool
-    {
-        if ($user->can('view_any_lawyer')) {
-            return true;
-        }
-
-        // عرض السجل الخاص به فقط
-        return $user->can('view_lawyer') && $lawyer->id === $user->lawyer_id;
-    }
     /**
      * Determine whether the user can view any models.
      */
-    // public function viewAny(User $user): bool
-    // {
-    //     return $user->can('view_any_lawyer');
-    // }
+    public function viewAny(User $user): bool
+    {
+        return $user->can('view_any_lawyer');
+    }
 
     /**
      * Determine whether the user can view the model.
      */
-    // public function view(User $user, Lawyer $lawyer): bool
-    // {
-    //     return $user->can('view_lawyer');
-    // }
+    public function view(User $user, Lawyer $lawyer): bool
+    {
+        return $user->can('view_lawyer');
+    }
 
     /**
      * Determine whether the user can create models.

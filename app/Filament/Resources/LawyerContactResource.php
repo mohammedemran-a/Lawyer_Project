@@ -59,7 +59,8 @@ class LawyerContactResource extends Resource
 
                 Tables\Columns\TextColumn::make('type')
                     ->label('نوع التواصل')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('value')
                     ->label('القيمة')

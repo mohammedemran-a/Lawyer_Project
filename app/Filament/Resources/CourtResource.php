@@ -25,7 +25,8 @@ class CourtResource extends Resource
             Forms\Components\TextInput::make('name')
                 ->label('الاسم')
                 ->required()
-                ->maxLength(200),
+                ->maxLength(200)
+                ->unique(),
 
             Forms\Components\Select::make('kind')
                 ->label('النوع')
@@ -78,11 +79,13 @@ class CourtResource extends Resource
 
             Tables\Columns\TextColumn::make('kind')
                 ->label('النوع')
-                ->sortable(),
+                ->sortable()
+                ->searchable(),
 
             Tables\Columns\TextColumn::make('level')
                 ->label('المستوى')
-                ->sortable(),
+                ->sortable()
+                ->searchable(),
 
             Tables\Columns\TextColumn::make('city')
                 ->label('المدينة')

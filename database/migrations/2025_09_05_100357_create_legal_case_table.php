@@ -30,7 +30,7 @@ return new class extends Migration
             $table->enum('status', [
                 'قيد النظر','منتهية بحكم','معلقة','مؤجلة',
                 'مغلقة','منتهية بصلح','منتهية بتنازل','متوقفة'
-            ])->default('قيد النظر')->index();
+            ])->nullable()->index();
             $table->date('received_at')->nullable()->index();
             $table->date('ended_at')->nullable()->index();
             $table->string('office_file_no', 100)->nullable()->index();

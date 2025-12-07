@@ -9,37 +9,22 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class ClientPolicy
 {
     use HandlesAuthorization;
-public function viewAny(User $user): bool
-{
-    // يستطيع فتح صفحة العملاء فقط إذا عنده صلاحية عرض أو عرض الكل
-    return $user->can('view_any_client') || $user->can('view_client');
-}
-
-public function view(User $user, Client $client): bool
-{
-    if ($user->can('view_any_client')) {
-        return true;
-    }
-
-    // عرض السجل الخاص به فقط
-    return $user->can('view_client') && $client->id === $user->id;
-}
 
     /**
      * Determine whether the user can view any models.
      */
-    // public function viewAny(User $user): bool
-    // {
-    //     return $user->can('view_any_client');
-    // }
+    public function viewAny(User $user): bool
+    {
+        return $user->can('view_any_client');
+    }
 
     /**
      * Determine whether the user can view the model.
      */
-    // public function view(User $user, Client $client): bool
-    // {
-    //     return $user->can('view_client');
-    // }
+    public function view(User $user, Client $client): bool
+    {
+        return $user->can('view_client');
+    }
 
     /**
      * Determine whether the user can create models.

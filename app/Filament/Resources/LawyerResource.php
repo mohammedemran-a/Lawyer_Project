@@ -116,10 +116,12 @@ class LawyerResource extends Resource
 
                 Tables\Columns\TextColumn::make('grade')
                     ->label('الدرجة')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('city')
-                    ->label('المدينة'),
+                    ->label('المدينة')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('phone')
                     ->label('الهاتف'),

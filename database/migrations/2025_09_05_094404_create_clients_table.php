@@ -14,8 +14,9 @@ return new class extends Migration
             $table->enum('type', ['شركة', 'فرد'])->index();
             $table->string('city', 120)->nullable()->index();
             $table->string('address', 255)->nullable()->index();
-            $table->string('email', 150)->unique();
             $table->string('username', 120)->unique()->nullable();
+            $table->string('email', 150)->unique();
+            $table->string('phone', 20)->nullable()->index();
             $table->string('password', 255)->nullable();
             $table->date('start_at')->nullable()->index();
             $table->date('end_at')->nullable()->index();

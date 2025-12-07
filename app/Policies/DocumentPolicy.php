@@ -10,45 +10,21 @@ class DocumentPolicy
 {
     use HandlesAuthorization;
 
-     public function viewAny(User $user): bool
-    {
-        return $user->can('view_any_document') || $user->can('view_document');
-    }
-
-    public function view(User $user, Document $document): bool
-    {
-        if ($user->can('view_any_document')) {
-            return true;
-        }
-
-        // المحامي يرى المستندات الخاصة به فقط
-        if ($user->can('view_document') && $user->lawyer_id && $document->lawyer_id === $user->lawyer_id) {
-            return true;
-        }
-
-        // العميل يرى المستندات الخاصة به فقط
-        if ($user->can('view_document') && $user->client_id && $document->client_id === $user->client_id) {
-            return true;
-        }
-
-        return false;
-    }
-
     /**
      * Determine whether the user can view any models.
      */
-    // public function viewAny(User $user): bool
-    // {
-    //     return $user->can('view_any_document');
-    // }
+    public function viewAny(User $user): bool
+    {
+        return $user->can('view_any_document');
+    }
 
     /**
      * Determine whether the user can view the model.
      */
-    // public function view(User $user, Document $document): bool
-    // {
-    //     return $user->can('view_document');
-    // }
+    public function view(User $user, Document $document): bool
+    {
+        return $user->can('view_document');
+    }
 
     /**
      * Determine whether the user can create models.

@@ -45,6 +45,21 @@ class LawsDocumentResource extends Resource
             Forms\Components\TextInput::make('law_category')
                 ->label('التصنيف')
                 ->maxLength(100),
+
+            Forms\Components\FileUpload::make('attachment')
+                ->label('مرفق القانون')
+                ->directory('laws_attachments')
+                ->visibility('public')
+                ->nullable()
+                ->acceptedFileTypes([
+                    'application/pdf',
+                    'application/msword',
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                    'application/vnd.ms-excel',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'image/jpeg',
+                    'image/png',
+                ]),
         ]);
     }
 
@@ -52,55 +67,97 @@ class LawsDocumentResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('law_number')->label('رقم القانون')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('law_title')->label('العنوان')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('issue_date')->label('تاريخ الإصدار')->date()->sortable(),
-                Tables\Columns\TextColumn::make('amendment_date')->label('تاريخ التعديل')->date()->sortable(),
-                Tables\Columns\TextColumn::make('law_category')->label('التصنيف')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('created_at')->label('تاريخ الإضافة')->dateTime()->sortable(),
+                Tables\Columns\TextColumn::make('law_number')
+                    ->label('رقم القانون')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('law_title')
+                    ->label('العنوان')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('issue_date')
+                    ->label('تاريخ الإصدار')
+                    ->date()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('amendment_date')
+                    ->label('تاريخ التعديل')
+                    ->date()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('law_category')
+                    ->label('التصنيف')
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('attachment')
+                    ->label('المرفق')
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) return '-';
+                        // جلب رابط الملف
+                        $url = asset('storage/' . $state); 
+                        return '<a href="' . $url . '" download class="inline-block px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">تحميل</a>';
+                    })
+                    ->html(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('تاريخ الإضافة')
+                    ->dateTime()
+                    ->sortable(),
             ])
+
             ->filters([
-                // فلتر حسب التصنيف
                 Tables\Filters\Filter::make('category')
                     ->label('حسب التصنيف')
                     ->form([
                         Forms\Components\TextInput::make('law_category')->label('التصنيف')
                     ])
-                    ->query(function ($query, $data) {
-                        if (!empty($data['law_category'])) {
-                            $query->where('law_category', 'like', '%' . $data['law_category'] . '%');
-                        }
-                    }),
+                    ->query(
+                        fn ($query, $data) =>
+                        $data['law_category']
+                            ? $query->where('law_category', 'like', '%' . $data['law_category'] . '%')
+                            : $query
+                    ),
 
-                // فلتر حسب تاريخ الإصدار
                 Tables\Filters\Filter::make('issue_date')
                     ->label('حسب تاريخ الإصدار')
                     ->form([
-                        Forms\Components\DatePicker::make('issue_date')->label('اختر تاريخ')
+                        Forms\Components\DatePicker::make('issue_date_from')->label('من تاريخ'),
+                        Forms\Components\DatePicker::make('issue_date_to')->label('إلى تاريخ'),
                     ])
                     ->query(function ($query, $data) {
-                        if (!empty($data['issue_date'])) {
-                            $query->whereDate('issue_date', $data['issue_date']);
+                        if (!empty($data['issue_date_from'])) {
+                            $query->whereDate('issue_date', '>=', $data['issue_date_from']);
+                        }
+                        if (!empty($data['issue_date_to'])) {
+                            $query->whereDate('issue_date', '<=', $data['issue_date_to']);
                         }
                     }),
 
-                // فلتر حسب تاريخ التعديل
                 Tables\Filters\Filter::make('amendment_date')
                     ->label('حسب تاريخ التعديل')
                     ->form([
-                        Forms\Components\DatePicker::make('amendment_date')->label('اختر تاريخ')
+                        Forms\Components\DatePicker::make('amendment_date_from')->label('من تاريخ'),
+                        Forms\Components\DatePicker::make('amendment_date_to')->label('إلى تاريخ'),
                     ])
                     ->query(function ($query, $data) {
-                        if (!empty($data['amendment_date'])) {
-                            $query->whereDate('amendment_date', $data['amendment_date']);
+                        if (!empty($data['amendment_date_from'])) {
+                            $query->whereDate('amendment_date', '>=', $data['amendment_date_from']);
+                        }
+                        if (!empty($data['amendment_date_to'])) {
+                            $query->whereDate('amendment_date', '<=', $data['amendment_date_to']);
                         }
                     }),
             ])
+
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
+
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);

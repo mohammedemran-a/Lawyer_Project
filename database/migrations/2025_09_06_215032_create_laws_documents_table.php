@@ -19,6 +19,8 @@ return new class extends Migration
             $table->date('issue_date')->nullable()->index();
             $table->date('amendment_date')->nullable()->index();
             $table->string('law_category', 100)->nullable()->index();
+            $table->string('attachment')->nullable();
+
             
             $table->timestamps();
         });

@@ -76,7 +76,7 @@ class RevenueDistributionRuleResource extends Resource
                 TextColumn::make('id')->label('ID')->sortable(),
                 TextColumn::make('lawyer.name')->label('المحامي')->searchable()->sortable(),
                 TextColumn::make('case.title')->label('القضية')->searchable()->sortable(),
-                TextColumn::make('type')->label('النوع')->sortable(),
+                TextColumn::make('type')->label('النوع')->sortable()->searchable(),
                 TextColumn::make('percentage')->label('النسبة %')->sortable(),
                 TextColumn::make('amount')->label('المبلغ')->sortable(),
                 TextColumn::make('effective_from')->label('ساري من')->date()->sortable(),

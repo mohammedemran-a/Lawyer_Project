@@ -51,8 +51,11 @@ class LegalcaseResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('case_number')
                     ->label('رقم القضية')
+                    ->numeric()              
+                    ->integer()            
+                    ->minValue(1) 
                     ->required()
-                    ->maxLength(100),
+                   ->unique(ignoreRecord: true),
 
                 Forms\Components\TextInput::make('title')
                     ->label('الموضوع')
@@ -62,18 +65,21 @@ class LegalcaseResource extends Resource
                     ->label('العميل')
                     ->relationship('client', 'name')
                     ->searchable()
+                    ->preload()
                     ->required(),
 
                 Forms\Components\Select::make('lawyer_id')
                     ->label('المحامي')
                     ->relationship('lawyer', 'name')
                     ->searchable()
+                     ->preload()
                     ->required(),
 
                 Forms\Components\Select::make('court_id')
                     ->label('المحكمة')
                     ->relationship('court', 'name')
                     ->searchable()
+                    ->preload()
                     ->required(),
 
                 Forms\Components\Select::make('client_role')
@@ -115,7 +121,7 @@ class LegalcaseResource extends Resource
                         'منتهية بتنازل' => 'منتهية بتنازل',
                         'متوقفة' => 'متوقفة',
                     ])
-                    ->default('قيد النظر'),
+                    ->nullable(),
 
                 Forms\Components\DatePicker::make('received_at')->label('تاريخ الاستلام'),
                 Forms\Components\DatePicker::make('ended_at')->label('تاريخ الانتهاء'),

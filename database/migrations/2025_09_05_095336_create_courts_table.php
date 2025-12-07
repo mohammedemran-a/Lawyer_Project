@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('courts', function (Blueprint $table) {
             $table->id();
 
-            $table->string('name', 200)->index();
+            $table->string('name', 200)->unique()->index();
             $table->enum('kind', ['محكمة','نيابة','قسم شرطة'])->index();
             $table->enum('level', ['ابتدائية','استئناف','عليا','غير ذالك'])->nullable()->index();
             $table->string('city', 120)->nullable()->index();

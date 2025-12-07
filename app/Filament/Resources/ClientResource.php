@@ -20,24 +20,21 @@ class ClientResource extends Resource
     protected static ?string $pluralModelLabel = 'العملاء';
     protected static ?string $modelLabel = 'عميل';
 
-   
     public static function getEloquentQuery(): Builder
     {
-       $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery();
 
-    // إذا عنده صلاحية عرض الكل
-    if (auth()->user()->can('view_any_client')) {
-        return $query;
+        if (auth()->user()->can('view_any_client')) {
+            return $query;
+        }
+
+        if (auth()->user()->can('view_client')) {
+            return $query->where('id', auth()->user()->client_id);
+        }
+
+        return $query->whereRaw('1=0');
     }
 
-    // إذا المستخدم عنده صلاحية عرض فقط → نعرض العميل المرتبط به
-    if (auth()->user()->can('view_client')) {
-        return $query->where('id', auth()->user()->client_id);
-    }
-
-    // إذا لا يملك صلاحيات العرض
-    return $query->whereRaw('1=0'); // لا يعرض شيء
-}
     public static function form(Form $form): Form
     {
         return $form
@@ -67,12 +64,16 @@ class ClientResource extends Resource
                     ->label('البريد الإلكتروني')
                     ->email()
                     ->unique(ignoreRecord: true),
-                 
 
                 Forms\Components\TextInput::make('username')
                     ->label('اسم المستخدم')
                     ->unique(ignoreRecord: true)
                     ->maxLength(120),
+
+                Forms\Components\TextInput::make('phone')
+                    ->label('رقم الهاتف')
+                    ->tel()
+                    ->maxLength(20),
 
                 Forms\Components\TextInput::make('password')
                     ->label('كلمة المرور')
@@ -102,29 +103,52 @@ class ClientResource extends Resource
 
                 Tables\Columns\TextColumn::make('type')
                     ->label('النوع')
+                    ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('email')
                     ->label('البريد الإلكتروني')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('username')
-                    ->label('اسم المستخدم'),
+                    ->label('اسم المستخدم')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('phone')
+                    ->label('رقم الهاتف')
+                    ->searchable()
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('city')
-                    ->label('المدينة'),
+                    ->label('المدينة')
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('address')
+                    ->label('العنوان')
+                    ->searchable()
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('start_at')
-                    ->label('بداية')
-                    ->date(),
+                    ->label('تاريخ البداية')
+                    ->date()
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('end_at')
-                    ->label('نهاية')
-                    ->date(),
+                    ->label('تاريخ النهاية')
+                    ->date()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('note')
+                    ->label('ملاحظات')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('تاريخ الإنشاء')
                     ->dateTime()
+                    ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([])

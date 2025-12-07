@@ -89,7 +89,8 @@ class FeeDistributionResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('beneficiary_type')
-                    ->label('نوع المستفيد'),
+                    ->label('نوع المستفيد')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('beneficiary_id')
                     ->label('رقم المستفيد'),

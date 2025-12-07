@@ -9,48 +9,22 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class LegalcasePolicy
 {
     use HandlesAuthorization;
-    
-    public function viewAny(User $user): bool
-    {
-        // المستخدم يمكنه رؤية القضايا الخاصة به فقط
-        return $user->can('view_any_legalcase') || $user->can('view_legalcase');
-    }
-
-    public function view(User $user, Legalcase $legalcase): bool
-    {
-        // إذا عنده صلاحية عرض الكل
-        if ($user->can('view_any_legalcase')) {
-            return true;
-        }
-
-        // المحامي يرى فقط قضاياه
-        if ($user->can('view_legalcase') && $user->lawyer_id && $legalcase->lawyer_id === $user->lawyer_id) {
-            return true;
-        }
-
-        // العميل يرى فقط قضاياه
-        if ($user->can('view_legalcase') && $user->client_id && $legalcase->client_id === $user->client_id) {
-            return true;
-        }
-
-        return false;
-    }
 
     /**
      * Determine whether the user can view any models.
      */
-    // public function viewAny(User $user): bool
-    // {
-    //     return $user->can('view_any_legalcase');
-    // }
+    public function viewAny(User $user): bool
+    {
+        return $user->can('view_any_legalcase');
+    }
 
     /**
      * Determine whether the user can view the model.
      */
-    // public function view(User $user, Legalcase $legalcase): bool
-    // {
-    //     return $user->can('view_legalcase');
-    // }
+    public function view(User $user, Legalcase $legalcase): bool
+    {
+        return $user->can('view_legalcase');
+    }
 
     /**
      * Determine whether the user can create models.

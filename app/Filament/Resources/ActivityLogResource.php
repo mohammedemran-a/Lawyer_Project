@@ -32,15 +32,18 @@ class ActivityLogResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('الرقم')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('المستخدم')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
 
                 Tables\Columns\BadgeColumn::make('action')
                     ->label('العملية')
+                    ->searchable()
                     ->formatStateUsing(fn ($state) => match ($state) {
                         'create' => 'إضافة',
                         'update' => 'تعديل',
@@ -56,6 +59,7 @@ class ActivityLogResource extends Resource
 
                 Tables\Columns\TextColumn::make('table_name')
                     ->label('الجدول')
+                    ->searchable()
                     ->formatStateUsing(fn ($state) => match ($state) {
          'accounts' => 'الحسابات',
         'activity_logs' => 'سجل النشاطات',
@@ -112,7 +116,8 @@ class ActivityLogResource extends Resource
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('تاريخ التنفيذ')
                     ->dateTime('Y-m-d H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([

@@ -9,38 +9,22 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class TaskPolicy
 {
     use HandlesAuthorization;
-    
-    public function viewAny(User $user): bool
-    {
-        // يمكن فتح صفحة المهام إذا كان عنده صلاحية عرض الكل أو عرض الخاص
-        return $user->can('view_any_task') || $user->can('view_task');
-    }
-
-    public function view(User $user, Task $task): bool
-    {
-        if ($user->can('view_any_task')) {
-            return true;
-        }
-
-        // يرى فقط المهام الخاصة به
-        return $user->can('view_task') && $task->user_id === $user->id;
-    }
 
     /**
      * Determine whether the user can view any models.
      */
-    // public function viewAny(User $user): bool
-    // {
-    //     return $user->can('view_any_task');
-    // }
+    public function viewAny(User $user): bool
+    {
+        return $user->can('view_any_task');
+    }
 
     /**
      * Determine whether the user can view the model.
      */
-    // public function view(User $user, Task $task): bool
-    // {
-    //     return $user->can('view_task');
-    // }
+    public function view(User $user, Task $task): bool
+    {
+        return $user->can('view_task');
+    }
 
     /**
      * Determine whether the user can create models.

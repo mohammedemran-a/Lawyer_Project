@@ -4,13 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\HearingResource\Pages;
 use App\Models\Hearing;
+use App\Models\Legalcase;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-
+use Carbon\Carbon;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 
 class HearingResource extends Resource
@@ -22,31 +23,26 @@ class HearingResource extends Resource
     protected static ?string $pluralLabel     = 'الجلسات';
     protected static ?string $label           = 'جلسة';
 
-public static function getEloquentQuery(): Builder
-{
-    $query = parent::getEloquentQuery()
-        ->with(['case', 'court', 'lawyer', 'client']);
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()->with(['case', 'court', 'lawyer', 'client']);
 
-    $user = auth()->user();
+        $user = auth()->user();
 
-    // إذا عنده صلاحية عرض الكل
-    if ($user->can('view_any_hearing')) {
-        return $query;
+        if ($user->can('view_any_hearing')) {
+            return $query;
+        }
+
+        if ($user->can('view_hearing') && $user->lawyer_id) {
+            return $query->where('lawyer_id', $user->lawyer_id);
+        }
+
+        if ($user->can('view_hearing') && $user->client_id) {
+            return $query->where('client_id', $user->client_id);
+        }
+
+        return $query->whereRaw('1=0');
     }
-
-    // المحامي: عرض جلساته فقط
-    if ($user->can('view_hearing') && $user->lawyer_id) {
-        return $query->where('lawyer_id', $user->lawyer_id);
-    }
-
-    // العميل: عرض جلساته فقط
-    if ($user->can('view_hearing') && $user->client_id) {
-        return $query->where('client_id', $user->client_id);
-    }
-
-    // إذا لا يملك صلاحية العرض
-    return $query->whereRaw('1=0');
-}
 
     public static function form(Form $form): Form
     {
@@ -56,7 +52,17 @@ public static function getEloquentQuery(): Builder
                 ->relationship('case', 'case_number')
                 ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->case_number} - {$record->title}")
                 ->searchable()
-                ->required(),
+                 ->preload()
+                ->required()
+                ->reactive()
+                ->afterStateUpdated(function ($state, callable $set) {
+                    $case = Legalcase::find($state);
+                    if ($case) {
+                        $set('court_id', $case->court_id ?? null);
+                        $set('lawyer_id', $case->lawyer_id ?? null);
+                        $set('client_id', $case->client_id ?? null);
+                    }
+                }),
 
             Forms\Components\Select::make('court_id')
                 ->label('المحكمة')
@@ -76,7 +82,22 @@ public static function getEloquentQuery(): Builder
 
             Forms\Components\DateTimePicker::make('hearing_datetime')
                 ->label('تاريخ ووقت الجلسة')
-                ->required(),
+                ->required()
+                ->rule(function ($get, $record) {
+                    return function ($attribute, $value, $fail) use ($get, $record) {
+                        $caseId = $get('case_id');
+                        $date = Carbon::parse($value)->format('Y-m-d');
+
+                        $exists = Hearing::where('case_id', $caseId)
+                            ->whereDate('hearing_datetime', $date)
+                            ->when($record?->id, fn($q) => $q->where('id', '!=', $record->id))
+                            ->exists();
+
+                        if ($exists) {
+                            $fail('هذه القضية لديها جلسة مسجلة بالفعل في هذا اليوم.');
+                        }
+                    };
+                }),
 
             Forms\Components\TextInput::make('topic')->label('موضوع الجلسة')->maxLength(200),
             Forms\Components\Textarea::make('decision')->label('القرار'),
@@ -105,13 +126,13 @@ public static function getEloquentQuery(): Builder
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('court.name')->label('المحكمة')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('lawyer.name')->label('المحامي'),
-                Tables\Columns\TextColumn::make('client.name')->label('العميل'),
-                Tables\Columns\TextColumn::make('hearing_datetime')->label('تاريخ الجلسة')->dateTime('d/m/Y H:i'),
-                Tables\Columns\TextColumn::make('topic')->label('الموضوع')->limit(30),
-                Tables\Columns\TextColumn::make('decision')->label('القرار')->limit(30),
-                Tables\Columns\TextColumn::make('postponed_to')->label('مؤجلة إلى')->date(),
-               // Tables\Columns\TextColumn::make('calendar_tag')->label('وسم'),
+                Tables\Columns\TextColumn::make('lawyer.name')->label('المحامي')->searchable(),
+                Tables\Columns\TextColumn::make('client.name')->label('العميل')->searchable(),
+                Tables\Columns\TextColumn::make('hearing_datetime')->label('تاريخ الجلسة')->dateTime('d/m/Y H:i')->searchable(),
+                Tables\Columns\TextColumn::make('topic')->label('الموضوع')->limit(30)->searchable(),
+                Tables\Columns\TextColumn::make('decision')->label('القرار')->limit(30)->searchable(),
+                Tables\Columns\TextColumn::make('notes')->label('ملاحظات')->searchable(),
+                Tables\Columns\TextColumn::make('postponed_to')->label('مؤجلة إلى')->date()->searchable(),
             ])
             ->filters([
                 Tables\Filters\Filter::make('postponed')
