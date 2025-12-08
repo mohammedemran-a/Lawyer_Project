@@ -15,7 +15,9 @@ class Lawyer extends Model
         'email',
         'username',
         'password',
-        'phone',
+        'phone_1',
+        'phone_2',
+        'phone_3',
         'joined_at',
         'end_at',
         'note'

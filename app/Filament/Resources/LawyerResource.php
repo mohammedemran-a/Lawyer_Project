@@ -20,144 +20,156 @@ class LawyerResource extends Resource
     protected static ?string $pluralLabel = 'المحامين';
     protected static ?string $modelLabel = 'محامي';
 
-   public static function getEloquentQuery(): Builder
+    public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
 
         $user = auth()->user();
 
-        // إذا عنده صلاحية عرض الكل
         if ($user->can('view_any_lawyer')) {
             return $query;
         }
 
-        // إذا عنده صلاحية عرض فقط → يعرض المحامي المرتبط به
         if ($user->can('view_lawyer')) {
             return $query->where('id', $user->lawyer_id);
         }
 
-        // إذا لا يملك صلاحيات العرض
-        return $query->whereRaw('1=0'); // لا يعرض شيء
+        return $query->whereRaw('1=0');
     }
-
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->label('اسم المحامي')
-                    ->required()
-                    ->maxLength(150),
+        return $form->schema([
 
-                Forms\Components\Select::make('grade')
-                    ->label('الدرجة')
-                    ->options([
-                        'تحت التمرين' => 'تحت التمرين',
-                        'ابتدائي' => 'ابتدائي',
-                        'استئناف' => 'استئناف',
-                        'عليا' => 'عليا',
-                    ])
-                    ->searchable()
-                    ->nullable(),
+            Forms\Components\TextInput::make('name')
+                ->label('اسم المحامي')
+                ->required()
+                ->maxLength(150),
 
-                Forms\Components\TextInput::make('city')
-                    ->label('المدينة')
-                    ->maxLength(120)
-                    ->nullable(),
+            Forms\Components\Select::make('grade')
+                ->label('الدرجة')
+                ->options([
+                    'تحت التمرين' => 'تحت التمرين',
+                    'ابتدائي' => 'ابتدائي',
+                    'استئناف' => 'استئناف',
+                    'عليا' => 'عليا',
+                ])
+                ->searchable()
+                ->nullable(),
 
-                Forms\Components\TextInput::make('address')
-                    ->label('العنوان')
-                    ->maxLength(255)
-                    ->nullable(),
+            Forms\Components\TextInput::make('city')
+                ->label('المدينة')
+                ->maxLength(120)
+                ->nullable(),
 
-                Forms\Components\TextInput::make('email')
-                    ->label('البريد الإلكتروني')
-                    ->email()
-                    ->unique(ignoreRecord: true)
-                    ->nullable(),
+            Forms\Components\TextInput::make('address')
+                ->label('العنوان')
+                ->maxLength(255)
+                ->nullable(),
 
-                Forms\Components\TextInput::make('username')
-                    ->label('اسم المستخدم')
-                    ->unique(ignoreRecord: true)
-                    ->nullable(),
+            Forms\Components\TextInput::make('email')
+                ->label('البريد الإلكتروني')
+                ->email()
+                ->unique(ignoreRecord: true)
+                ->nullable(),
 
-                Forms\Components\TextInput::make('password')
-                    ->label('كلمة المرور')
-                    ->password()
-                    ->nullable(),
+            Forms\Components\TextInput::make('username')
+                ->label('اسم المستخدم')
+                ->unique(ignoreRecord: true)
+                ->nullable(),
 
-                Forms\Components\TextInput::make('phone')
-                    ->label('الهاتف')
-                    ->nullable(),
+            Forms\Components\TextInput::make('password')
+                ->label('كلمة المرور')
+                ->password()
+                ->nullable(),
 
-                Forms\Components\DatePicker::make('joined_at')
-                    ->label('تاريخ الانضمام')
-                    ->nullable(),
+            Forms\Components\TextInput::make('phone_1')
+                ->label('رقم الهاتف 1')
+                ->tel()
+                ->nullable(),
 
-                Forms\Components\DatePicker::make('end_at')
-                    ->label('تاريخ الانتهاء')
-                    ->nullable(),
+            Forms\Components\TextInput::make('phone_2')
+                ->label('رقم الهاتف 2')
+                ->tel()
+                ->nullable(),
 
-                Forms\Components\Textarea::make('note')
-                    ->label('ملاحظات')
-                    ->nullable(),
-            ]);
+            Forms\Components\TextInput::make('phone_3')
+                ->label('رقم الهاتف 3')
+                ->tel()
+                ->nullable(),
+
+            Forms\Components\DatePicker::make('joined_at')
+                ->label('تاريخ الانضمام')
+                ->nullable(),
+
+            Forms\Components\DatePicker::make('end_at')
+                ->label('تاريخ الانتهاء')
+                ->nullable(),
+
+            Forms\Components\Textarea::make('note')
+                ->label('ملاحظات')
+                ->nullable(),
+        ]);
     }
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('الاسم')
-                    ->searchable()
-                    ->sortable(),
+        return $table->columns([
 
-                Tables\Columns\TextColumn::make('grade')
-                    ->label('الدرجة')
-                    ->sortable()
-                    ->searchable(),
+            Tables\Columns\TextColumn::make('name')
+                ->label('الاسم')
+                ->searchable()
+                ->sortable(),
 
-                Tables\Columns\TextColumn::make('city')
-                    ->label('المدينة')
-                    ->searchable(),
+            Tables\Columns\TextColumn::make('grade')
+                ->label('الدرجة')
+                ->sortable()
+                ->searchable(),
 
-                Tables\Columns\TextColumn::make('phone')
-                    ->label('الهاتف'),
+            Tables\Columns\TextColumn::make('city')
+                ->label('المدينة')
+                ->searchable(),
 
-                Tables\Columns\TextColumn::make('joined_at')
-                    ->label('تاريخ الانضمام')
-                    ->date(),
+            // ✅ عرض الأرقام الثلاثة
+            Tables\Columns\TextColumn::make('phone_1')
+                ->label('الهاتف 1'),
 
-                Tables\Columns\TextColumn::make('end_at')
-                    ->label('تاريخ الانتهاء')
-                    ->date(),
-            ])
-            ->filters([])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
-            ]);
+            Tables\Columns\TextColumn::make('phone_2')
+                ->label('الهاتف 2'),
+
+            Tables\Columns\TextColumn::make('phone_3')
+                ->label('الهاتف 3'),
+
+            Tables\Columns\TextColumn::make('joined_at')
+                ->label('تاريخ الانضمام')
+                ->date(),
+
+            Tables\Columns\TextColumn::make('end_at')
+                ->label('تاريخ الانتهاء')
+                ->date(),
+        ])
+        ->filters([])
+        ->actions([
+            Tables\Actions\ViewAction::make(),
+            Tables\Actions\EditAction::make(),
+            Tables\Actions\DeleteAction::make(),
+        ])
+        ->bulkActions([
+            Tables\Actions\DeleteBulkAction::make(),
+        ]);
     }
 
     public static function getRelations(): array
     {
-        return [
-            
-        ];
+        return [];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListLawyers::route('/'),
+            'index'  => Pages\ListLawyers::route('/'),
             'create' => Pages\CreateLawyer::route('/create'),
-            'edit' => Pages\EditLawyer::route('/{record}/edit'),
+            'edit'   => Pages\EditLawyer::route('/{record}/edit'),
         ];
     }
 

@@ -103,7 +103,7 @@ class HearingResource extends Resource
             Forms\Components\Textarea::make('decision')->label('القرار'),
             Forms\Components\Textarea::make('required_action')->label('الإجراء المطلوب'),
             Forms\Components\DatePicker::make('postponed_to')->label('تأجيل إلى'),
-            Forms\Components\TextInput::make('conter')->label('رقم الجلسة')->numeric(),
+            Forms\Components\TextInput::make('conter')->label('رقم الجلسة')->numeric()->minValue(1),
             Forms\Components\Textarea::make('notes')->label('ملاحظات'),
             Forms\Components\Select::make('session_type')
                 ->label('نوع الجلسة')

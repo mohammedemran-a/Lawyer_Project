@@ -20,7 +20,9 @@ return new class extends Migration
             $table->string("email", 150)->unique();
             $table->string("username", 120)->unique();
             $table->string("password", 255)->nullable();
-            $table->string("phone")->nullable()->index();
+            $table->string("phone_1")->nullable()->index();
+            $table->string('phone_2')->nullable();
+            $table->string('phone_3')->nullable();
             $table->date("joined_at")->nullable()->index();
             $table->date("end_at")->nullable()->index();
             $table->text("note")->nullable();
