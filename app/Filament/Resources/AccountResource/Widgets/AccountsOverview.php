@@ -4,31 +4,34 @@ namespace App\Filament\Resources\AccountResource\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use App\Models\Account;
 use App\Models\Transaction;
 
 class AccountsOverview extends BaseWidget
 {
+    // تحميل Widget بشكل Lazy لتسريع فتح الصفحة
+    protected static bool $isLazy = true;
+
     protected function getStats(): array
     {
-        // إجمالي الأرصدة لكل الحسابات
-        $totalBalance = Account::all()->sum(function ($account) {
-            $income = $account->transactions()->where('txn_type', 'income')->sum('amount');
-            $expense = $account->transactions()->where('txn_type', 'expense')->sum('amount');
-            return $income - $expense;
+        // استخدام Cache لمدة 30 ثانية لتقليل الاستعلامات
+        $totalBalance = cache()->remember('total_balance', 30, function() {
+            $totalIncome = Transaction::where('txn_type', 'income')->sum('amount');
+            $totalExpense = Transaction::where('txn_type', 'expense')->sum('amount');
+            return $totalIncome - $totalExpense;
         });
 
-        // الإيرادات الشهرية
-        $monthlyRevenue = Transaction::where('txn_type', 'income')
-            ->whereMonth('txn_date', now()->month)
-            ->sum('amount');
+        $monthlyRevenue = cache()->remember('monthly_revenue', 30, function() {
+            return Transaction::where('txn_type', 'income')
+                ->whereMonth('txn_date', now()->month)
+                ->sum('amount');
+        });
 
-        // المصاريف الشهرية
-        $monthlyExpenses = Transaction::where('txn_type', 'expense')
-            ->whereMonth('txn_date', now()->month)
-            ->sum('amount');
+        $monthlyExpenses = cache()->remember('monthly_expenses', 30, function() {
+            return Transaction::where('txn_type', 'expense')
+                ->whereMonth('txn_date', now()->month)
+                ->sum('amount');
+        });
 
-        // صافي الربح
         $netProfit = $monthlyRevenue - $monthlyExpenses;
 
         return [

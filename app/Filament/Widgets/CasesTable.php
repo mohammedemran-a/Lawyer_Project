@@ -10,17 +10,21 @@ use Illuminate\Database\Eloquent\Builder;
 class CasesTable extends BaseWidget
 {
     protected static ?string $heading = 'جدول القضايا';
-   // protected static ?string $emptyStateHeading = 'لا توجد قضايا';
     protected int|string|array $columnSpan = 'full';
+
+    // تحميل Lazy لتسريع فتح الصفحة
+    protected static bool $isLazy = true;
 
     protected function getTableQuery(): ?Builder
     {
-        return Legalcase::query();
+        return Legalcase::query()
+            ->with(['client', 'lawyer', 'court']) // تجنب N+1
+            ->latest(); // ترتيب حسب الأحدث أولاً
     }
 
     protected function getTableColumns(): array
     {
-       return [
+        return [
             Tables\Columns\TextColumn::make('case_number')
                 ->label('رقم القضية')
                 ->sortable()
@@ -58,12 +62,9 @@ class CasesTable extends BaseWidget
                 ->color(fn (string $state): string => match ($state) {
                     'قيد النظر' => 'warning',
                     'منتهية بحكم' => 'danger',
-                    'معلقة' => 'gray',
-                    'مؤجلة' => 'gray',
+                    'معلقة', 'مؤجلة', 'متوقفة' => 'gray',
                     'مغلقة' => 'secondary',
-                    'منتهية بصلح' => 'success',
-                    'منتهية بتنازل' => 'success',
-                    'متوقفة' => 'gray',
+                    'منتهية بصلح', 'منتهية بتنازل' => 'success',
                     default => 'secondary',
                 }),
 
@@ -117,9 +118,7 @@ class CasesTable extends BaseWidget
     protected function getTableActions(): array
     {
         return [
-            // Tables\Actions\ViewAction::make(),
-            // Tables\Actions\EditAction::make(),
-            // Tables\Actions\DeleteAction::make(),
+            // هنا يمكن إضافة View/Edit/Delete إذا أردت
         ];
     }
 
@@ -129,9 +128,9 @@ class CasesTable extends BaseWidget
             Tables\Actions\DeleteBulkAction::make(),
         ];
     }
-    protected function getTableEmptyStateHeading(): ?string
-{
-    return 'لا توجد قضايا حالياً';
-}
-}
 
+    protected function getTableEmptyStateHeading(): ?string
+    {
+        return 'لا توجد قضايا حالياً';
+    }
+}
