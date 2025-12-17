@@ -18,9 +18,9 @@ class BriefResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     // أسماء المورد
-    protected static ?string $navigationLabel = 'Briefs';
-    protected static ?string $pluralLabel = 'Briefs';
-    protected static ?string $modelLabel = 'Brief';
+    protected static ?string $navigationLabel = 'المذكرات';
+    protected static ?string $pluralLabel = 'المذكرات';
+    protected static ?string $modelLabel = 'مذكرة';
 
     /**
      * نموذج الإضافة / التعديل
@@ -29,12 +29,12 @@ class BriefResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('name')
-                ->label('Brief Name')
+                ->label('اسم المذكرة')
                 ->required()
                 ->maxLength(255),
 
             Forms\Components\FileUpload::make('path')
-                ->label('Upload Brief')
+                ->label('رفع المذكرة')
                 ->directory('briefs')
                 ->preserveFilenames()
                 ->required(),
@@ -49,30 +49,30 @@ class BriefResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Brief Name')
+                    ->label('اسم المذكرة')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('path')
-                    ->label('File Path')
+                    ->label('مسار الملف')
                     ->wrap(),
             ])
             ->actions([
                 Action::make('download')
-                    ->label('Download')
+                    ->label('تحميل')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->url(fn (Brief $record) => asset('storage/' . $record->path))
                     ->openUrlInNewTab(),
 
                 Tables\Actions\EditAction::make()
-                    ->label('Edit'),
+                    ->label('تعديل'),
 
                 Tables\Actions\DeleteAction::make()
-                    ->label('Delete'),
+                    ->label('حذف'),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make()
-                    ->label('Delete Selected'),
+                    ->label('حذف المحدد'),
             ]);
     }
 
@@ -87,12 +87,18 @@ class BriefResource extends Resource
             'edit'   => Pages\EditBrief::route('/{record}/edit'),
         ];
     }
-    
+
+    /**
+     * مجموعة القائمة
+     */
     public static function getNavigationGroup(): ?string
     {
         return 'المستندات والتقارير';
     }
 
+    /**
+     * ترتيب المورد في القائمة
+     */
     public static function getNavigationSort(): ?int
     {
         return 1;
