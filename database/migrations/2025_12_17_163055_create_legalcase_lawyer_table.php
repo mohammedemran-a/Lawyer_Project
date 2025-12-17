@@ -13,13 +13,14 @@ return new class extends Migration
     {
         Schema::create('legalcase_lawyer', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('legalcase_id')->constrained('legal_case')->cascadeOnDelete()->index();
-            $table->foreignId('lawyer_id')->constrained()->cascadeOnDelete()->index();
+             $table->foreignId('legalcase_id')
+            ->constrained('legal_case')
+            ->cascadeOnDelete();
+            $table->foreignId('lawyer_id')
+            ->constrained('lawyers')
+            ->cascadeOnDelete();
             $table->timestamps();
-
-            $table->index('legalcase_id');
-            $table->index('lawyer_id');
-            $table->unique(['legalcase_id', 'lawyer_id']);
+           $table->unique(['legalcase_id', 'lawyer_id']);
         });
     }
 
