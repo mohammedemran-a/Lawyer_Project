@@ -3,7 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-//use Livewire\Livewire;
+use App\Models\Hearing; 
+use App\Observers\HearingObserver; 
 use Illuminate\Support\Facades\Route;
 use App\Observers\ActivityObserver;
 use App\Models\Document;
@@ -24,9 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Livewire::setScriptRoute(function ($handle) {
-        //     return Route::get('/vendor/livewire/livewire.js', $handle);
-        // });
+            Hearing::observe(HearingObserver::class);
             Document::observe(ActivityObserver::class);
             User::observe(ActivityObserver::class);
 

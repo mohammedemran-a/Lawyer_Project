@@ -31,13 +31,14 @@ class Lawyer extends Model
     {
         return $this->hasMany(LawyerAttachment::class);
     }
-    public function cases()
+    public function legalcases()
     {
-        return $this->hasMany(Legalcase::class);
+        return $this->belongsToMany(Legalcase::class, 'legalcase_lawyer');
     }
+
     public function hearings()
     {
-        return $this->hasMany(Hearing::class);
+        return $this->belongsToMany(Hearing::class, 'hearing_lawyer');
     }
     public function users()
     {

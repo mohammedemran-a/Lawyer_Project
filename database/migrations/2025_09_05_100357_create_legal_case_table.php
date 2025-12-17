@@ -14,9 +14,6 @@ return new class extends Migration
             $table->unsignedBigInteger('client_id')->nullable()->index();
             $table->foreign('client_id', 'legal_case_client_id_foreign')
             ->references('id')->on('clients')->onDelete('cascade');
-            $table->unsignedBigInteger('lawyer_id')->nullable()->index();
-            $table->foreign('lawyer_id', 'legal_case_lawyer_id_foreign')
-            ->references('id')->on('lawyers')->onDelete('cascade');
             $table->unsignedBigInteger('court_id')->nullable()->index();
             $table->foreign('court_id', 'legal_case_court_id_foreign')
             ->references('id')->on('courts')->onDelete('cascade');

@@ -41,12 +41,16 @@ class UserResource extends Resource
                     ->required()
                     ->unique(ignoreRecord: true),
 
-                Forms\Components\TextInput::make('password')
-                    ->label('كلمة المرور')
-                    ->password()
-                    ->dehydrateStateUsing(fn ($state) => !empty($state) ? bcrypt($state) : null)
-                    ->required(fn (string $context): bool => $context === 'create')
-                    ->maxLength(255),
+               Forms\Components\TextInput::make('password')
+                ->label('كلمة المرور')
+                ->password()
+                ->revealable()
+                ->maxLength(255)
+                ->required(fn (string $context): bool => $context === 'create')
+                ->dehydrated(fn ($state) => filled($state))
+                ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
+                ->helperText('اترك الحقل فارغًا إذا لا تريد تغيير كلمة المرور'),
+
 
                 Forms\Components\Select::make('roles')
                     ->label('الدور')

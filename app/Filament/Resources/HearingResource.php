@@ -25,7 +25,8 @@ class HearingResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->with(['case', 'court', 'lawyer', 'client']);
+        $query = parent::getEloquentQuery()
+            ->with(['case', 'court', 'lawyers', 'client']);
 
         $user = auth()->user();
 
@@ -34,7 +35,9 @@ class HearingResource extends Resource
         }
 
         if ($user->can('view_hearing') && $user->lawyer_id) {
-            return $query->where('lawyer_id', $user->lawyer_id);
+            return $query->whereHas('lawyers', function ($q) use ($user) {
+                $q->where('lawyer_id', $user->lawyer_id);
+            });
         }
 
         if ($user->can('view_hearing') && $user->client_id) {
@@ -47,20 +50,26 @@ class HearingResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
+
             Forms\Components\Select::make('case_id')
-                ->label('رقم القضية')
+                ->label('القضية')
                 ->relationship('case', 'case_number')
-                ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->case_number} - {$record->title}")
+                ->getOptionLabelFromRecordUsing(fn ($record) =>
+                    "{$record->case_number} - {$record->title}"
+                )
                 ->searchable()
-                 ->preload()
+                ->preload()
                 ->required()
                 ->reactive()
                 ->afterStateUpdated(function ($state, callable $set) {
                     $case = Legalcase::find($state);
+
                     if ($case) {
-                        $set('court_id', $case->court_id ?? null);
-                        $set('lawyer_id', $case->lawyer_id ?? null);
-                        $set('client_id', $case->client_id ?? null);
+                        $set('court_id', $case->court_id);
+                        $set('client_id', $case->client_id);
+
+                        $count = Hearing::where('case_id', $case->id)->count();
+                        $set('conter', $count + 1);
                     }
                 }),
 
@@ -70,10 +79,13 @@ class HearingResource extends Resource
                 ->searchable()
                 ->required(),
 
-            Forms\Components\Select::make('lawyer_id')
-                ->label('المحامي')
-                ->relationship('lawyer', 'name')
-                ->searchable(),
+            Forms\Components\Select::make('lawyers')
+                ->label('المحامون')
+                ->relationship('lawyers', 'name')
+                ->multiple()
+                ->searchable()
+                ->preload()
+                ->required(),
 
             Forms\Components\Select::make('client_id')
                 ->label('العميل')
@@ -90,21 +102,37 @@ class HearingResource extends Resource
 
                         $exists = Hearing::where('case_id', $caseId)
                             ->whereDate('hearing_datetime', $date)
-                            ->when($record?->id, fn($q) => $q->where('id', '!=', $record->id))
+                            ->when($record?->id, fn ($q) => $q->where('id', '!=', $record->id))
                             ->exists();
 
                         if ($exists) {
-                            $fail('هذه القضية لديها جلسة مسجلة بالفعل في هذا اليوم.');
+                            $fail('يوجد جلسة مسجلة لهذه القضية في نفس اليوم.');
                         }
                     };
                 }),
 
-            Forms\Components\TextInput::make('topic')->label('موضوع الجلسة')->maxLength(200),
-            Forms\Components\Textarea::make('decision')->label('القرار'),
-            Forms\Components\Textarea::make('required_action')->label('الإجراء المطلوب'),
-            Forms\Components\DatePicker::make('postponed_to')->label('تأجيل إلى'),
-            Forms\Components\TextInput::make('conter')->label('رقم الجلسة')->numeric()->minValue(1),
-            Forms\Components\Textarea::make('notes')->label('ملاحظات'),
+            Forms\Components\TextInput::make('topic')
+                ->label('موضوع الجلسة')
+                ->maxLength(200),
+
+            Forms\Components\Textarea::make('decision')
+                ->label('القرار'),
+
+            Forms\Components\Textarea::make('required_action')
+                ->label('الإجراء المطلوب'),
+
+            Forms\Components\DatePicker::make('postponed_to')
+                ->label('تأجيل إلى'),
+
+            Forms\Components\TextInput::make('conter')
+                ->label('رقم الجلسة')
+                ->numeric()
+                ->disabled()
+                ->dehydrated(),
+
+            Forms\Components\Textarea::make('notes')
+                ->label('ملاحظات'),
+
             Forms\Components\Select::make('session_type')
                 ->label('نوع الجلسة')
                 ->options([
@@ -119,46 +147,54 @@ class HearingResource extends Resource
     {
         return $table
             ->columns([
+
                 Tables\Columns\TextColumn::make('case.case_number')
                     ->label('القضية')
-                    ->formatStateUsing(fn ($state, $record) => "{$record->case->case_number} - {$record->case->title}")
+                    ->formatStateUsing(fn ($state, $record) =>
+                        "{$record->case->case_number} - {$record->case->title}"
+                    )
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('court.name')->label('المحكمة')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('lawyer.name')->label('المحامي')->searchable(),
-                Tables\Columns\TextColumn::make('client.name')->label('العميل')->searchable(),
-                Tables\Columns\TextColumn::make('hearing_datetime')->label('تاريخ الجلسة')->dateTime('d/m/Y H:i')->searchable(),
-                Tables\Columns\TextColumn::make('topic')->label('الموضوع')->limit(30)->searchable(),
-                Tables\Columns\TextColumn::make('decision')->label('القرار')->limit(30)->searchable(),
-                Tables\Columns\TextColumn::make('notes')->label('ملاحظات')->searchable(),
-                Tables\Columns\TextColumn::make('postponed_to')->label('مؤجلة إلى')->date()->searchable(),
+                Tables\Columns\TextColumn::make('court.name')
+                    ->label('المحكمة')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('lawyers.name')
+                    ->label('المحامون')
+                    ->badge()
+                    ->separator(' ، '),
+
+                Tables\Columns\TextColumn::make('client.name')
+                    ->label('العميل'),
+
+                Tables\Columns\TextColumn::make('hearing_datetime')
+                    ->label('تاريخ الجلسة')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('topic')
+                    ->label('الموضوع')
+                    ->limit(30),
+
+                Tables\Columns\TextColumn::make('decision')
+                    ->label('القرار')
+                    ->limit(30),
+
+                Tables\Columns\TextColumn::make('postponed_to')
+                    ->label('مؤجلة إلى')
+                    ->date(),
+
+                Tables\Columns\TextColumn::make('conter')
+                    ->label('رقم الجلسة')
+                    ->sortable(),
             ])
             ->filters([
                 Tables\Filters\Filter::make('postponed')
-                    ->label('مؤجلة')
-                    ->query(fn ($query) => $query->whereNotNull('postponed_to')),
-
-                Tables\Filters\Filter::make('date')
-                    ->label('حسب التاريخ')
-                    ->form([Forms\Components\DatePicker::make('date')->label('اختر يوم')])
-                    ->query(function (Builder $query, array $data) {
-                        if (!empty($data['date'])) {
-                            $query->whereDate('hearing_datetime', $data['date']);
-                        }
-                    }),
+                    ->label('جلسات مؤجلة')
+                    ->query(fn ($q) => $q->whereNotNull('postponed_to')),
             ])
             ->headerActions([
-                Tables\Actions\Action::make('calendar')
-                    ->label('عرض حسب اليوم')
-                    ->icon('heroicon-o-calendar')
-                    ->form([Forms\Components\DatePicker::make('date')->label('اختر يوم')->required()])
-                    ->action(function (array $data, $livewire) {
-                        $livewire->redirect(
-                            HearingResource::getUrl('index', ['tableFilters[date][date]' => $data['date']])
-                        );
-                    }),
-
                 ExportAction::make()->label('تصدير'),
             ])
             ->actions([
@@ -169,11 +205,6 @@ class HearingResource extends Resource
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [];
     }
 
     public static function getPages(): array

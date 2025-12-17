@@ -81,6 +81,7 @@ class LawyerResource extends Resource
             Forms\Components\TextInput::make('password')
                 ->label('كلمة المرور')
                 ->password()
+                ->revealable()
                 ->nullable(),
 
             Forms\Components\TextInput::make('phone_1')

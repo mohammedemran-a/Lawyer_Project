@@ -6,12 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Legalcase extends Model
 {
-    //
     protected $table = 'legal_case';
+
     protected $fillable = [
         'case_number',
         'client_id',
-        'lawyer_id',
         'court_id',
         'client_role',
         'title',
@@ -22,42 +21,56 @@ class Legalcase extends Model
         'office_file_no',
         'note',
     ];
+
+    /* ================= العلاقات ================= */
+
     public function client()
     {
         return $this->belongsTo(Client::class);
     }
-    public function lawyer()
+
+    // ✅ أكثر من محامي
+    public function lawyers()
     {
-        return $this->belongsTo(Lawyer::class, 'lawyer_id');
+        return $this->belongsToMany(Lawyer::class, 'legalcase_lawyer')
+                    ->withTimestamps();
     }
+
     public function court()
     {
-        return $this->belongsTo(Court::class);  
+        return $this->belongsTo(Court::class);
     }
-    public function amendments()
-    {
-        return $this->hasMany(CaseAmendment::class, 'case_id');
-    }
+
     public function hearings()
     {
         return $this->hasMany(Hearing::class, 'case_id');
     }
+
+    public function amendments()
+    {
+        return $this->hasMany(CaseAmendment::class, 'case_id');
+    }
+
     public function documents()
     {
         return $this->hasMany(Document::class, 'case_id');
     }
+
     public function transactions()
     {
         return $this->hasMany(Transaction::class, 'case_id');
     }
+
     public function revenueDistributionRules()
     {
         return $this->hasMany(RevenueDistributionRule::class, 'case_id');
     }
+
     public function dailyReports()
     {
         return $this->hasMany(DailyReport::class, 'case_id');
     }
+
     public function workflows()
     {
         return $this->hasMany(Workflow::class, 'related_case_id');

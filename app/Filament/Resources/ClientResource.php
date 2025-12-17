@@ -78,6 +78,7 @@ class ClientResource extends Resource
                 Forms\Components\TextInput::make('password')
                     ->label('كلمة المرور')
                     ->password()
+                    ->revealable()
                     ->maxLength(255),
 
                 Forms\Components\DatePicker::make('start_at')
